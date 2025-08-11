@@ -1,6 +1,6 @@
-### LBD 웹사이트 배포 전 작업 목록 (TASKS) — v0.1
+### LBD 웹사이트 배포 전 작업 목록 (TASKS) — v0.2
 
-- 기준 문서: `PRD v0.2` (`./PRD.md`), `TRD v0.2` (`./TRD.md`), `DesignGuide v0.2` (`./DesignGuide.md`), `AdminCMS v0.2` (`./AdminCMS.md`)
+- 기준 문서: `PRD v0.2` (`./PRD.md`), `TRD v0.2` (`./TRD.md`), `DesignGuide v0.4` (`./DesignGuide.md`), `AdminCMS v0.2` (`./AdminCMS.md`)
 - 범위: v1 공개 배포(마케팅/프로젝트 아카이브 공개 + 멤버 전용 기능 + Admin CMS 기본)
 - 형식: 체크리스트 + 수용 기준(AC) + 의존성(Deps)
 
@@ -34,9 +34,10 @@
 ## 1. 프로젝트 스캐폴딩/디자인 토큰
 
 - [ ] Next.js(App Router) + TS + Tailwind + shadcn/ui 초기화
-  - [ ] Tailwind 테마: `DesignGuide v0.2` 색상/스크린/라운드 토큰 반영
+  - [ ] Tailwind 테마: `DesignGuide v0.4` 색상/스크린/라운드 토큰 반영
   - [ ] 글로벌 레이아웃/헤더/푸터, 폰트(Pretendard/Inter) 설정
   - [ ] 공통 컴포넌트: Button, Input, Badge(cohort), Card, FilterBar, RichContent(HTML Sanitizer), Gallery
+  - [ ] 모션 토큰/유틸 준비: duration/easing/stagger/scroll-trigger, `useInView`(IntersectionObserver), `MotionProvider`(reduced-motion), `Motion` 프리셋(fadeUp/scaleIn/stagger)
   - AC
     - [ ] 키보드 내비게이션/포커스 링 제공, 대비 AA 만족(샘플)
     - [ ] 헤더 투명→스크롤 시 단색 전환 동작
@@ -89,9 +90,16 @@
 - [ ] 섹션: 히어로, 미션/가치, 최근 소식 3건, Featured 프로젝트, 파트너/CTA
 - [ ] OG/SEO 메타, 구조화 데이터(선택)
 - [ ] 성능 튜닝: 이미지 최적화, critical CSS, 프리로드/프리커넥트
+- [ ] 헤더 인터랙션: 스크롤 8px 초과 축소(72→56px), 투명→White 90%+blur, 스크롤 업 시 재등장(show-on-scroll-up)
+- [ ] 히어로: 텍스트 fadeUp(stagger 60ms), CTA scaleIn, 배경 오버레이(상단 0→70% 그라데이션), 비주얼 parallax(±12px, 데스크톱만)
+- [ ] Featured 슬라이더: 1/2/3열 반응형, 자동 6s, hover/포커스 시 일시정지, 드래그/스와이프, 도트(모바일 숨김)
+- [ ] 카운터: in-view 카운트업(1.2s), reduce-motion 시 정적 표시, 천단위 구분
+- [ ] 파트너 로고: 마퀴 자동 스크롤, hover/포커스 정지, 대비 낮은 로고 단색 처리
+- [ ] reduce-motion: 모든 reveal/자동 슬라이드 비활성/단축
 - AC
   - [ ] 95p LCP ≤ 2.5s, Lighthouse Performance ≥ 90(모바일)
   - [ ] CTA 키보드 포커스/활성화 동작, 초기 뷰포트 레이아웃 깨짐 없음
+  - [ ] reduce-motion 활성 시 모션 전부 정지/단축 확인(수동 QA 체크리스트 통과)
   - Deps: Projects(Featured), DesignGuide
 
 ---
@@ -257,6 +265,7 @@
 - AC
   - [ ] Lighthouse 모바일 Performance/SEO/Best Practices ≥ 90, CLS ≤ 0.1
   - [ ] axe 스캔 무오류(크리티컬)
+  - [ ] prefers-reduced-motion: reduce 환경에서 랜딩/슬라이더/카운터/마퀴 비활성 확인
 
 ---
 
@@ -322,6 +331,68 @@
 - [ ] 백업/롤백/장애 공지 절차 문서 링크 노션에 기록
 
 ---
+
+## 23. UI 모션/마이크로 인터랙션(전역)
+
+- [ ] 버튼: hover -1px/180ms, active 0px/instant, disabled 커서 not-allowed + 투명도 60%
+- [ ] 링크: underline-offset 4px, hover 색상 8% 진하게, focus-visible 링
+- [ ] 입력: focus ring 2px + outline offset 2px, 에러는 색/아이콘/메시지로만 표시(shake 금지)
+- [ ] 토글/스위치: drag 허용, click 180ms ease-out 전환
+- [ ] 탭: ink bar 240ms slide, 키보드 좌우 이동, aria-selected 적용
+- [ ] 아코디언: max-height + opacity 트랜지션 240ms
+- [ ] 툴팁: 120ms delay-in/100ms out, focus/hover 모두 표시, ESC 닫힘
+- [ ] 토스트: 상단 우측 스택, 240ms slide/fade, 4s 자동 종료, hover 시 일시정지
+- [ ] 카드: shadow md→lg + translateY -2px + 이미지 scale 1.01(180ms)
+- [ ] 배지/필터 칩: 선택 시 scale 0.98→1(120ms)
+- AC
+  - [ ] 키보드/포인터 모두에서 동일 피드백 제공, 포커스 링 시각적 충돌 없음
+  - [ ] 모바일(coarse pointer)에서 hover 효과 최소화, 히트 영역 ≥ 44px
+  - Deps: DesignGuide 3.5/12
+
+---
+
+## 24. 전역 내비/페이지 전환
+
+- [ ] 페이지 전환 시 첫 포커스는 h1로 이동, 스크롤 최상단 복원
+- [ ] 세그먼트 로딩(선택): 상단 프로그레스 바, skeleton 유지
+- [ ] 해시 앵커 이동: `scroll-margin-top: 88px`, 사용자 선호 스크롤 설정 존중
+- [ ] iOS 스와이프 백과 수평 스와이프 제스처 충돌 방지(좌우 24px 안전 영역)
+- AC
+  - [ ] 라우팅 전환 a11y 점검 통과, 포커스 트랩 누락 없음
+  - Deps: App Router
+
+---
+
+## 25. 로딩/에러/스켈레톤
+
+- [ ] 스켈레톤 패턴(카드/리스트/문단), shimmer 1.2s linear infinite
+- [ ] 이미지 blur-up(저해상 썸네일 → 원본), aspect-ratio 유지
+- [ ] 에러 UI: 친화 메시지 + 재시도, 기술 세부는 로깅으로 분리
+- [ ] 로딩 버튼: 스피너/텍스트("로딩 중…"), disabled + aria-busy
+- AC
+  - [ ] 느린 3G 시나리오에서 레이아웃 점프 없이 스켈레톤→콘텐츠 전환
+  - Deps: Image 컴포넌트, Sentry(선택)
+
+---
+
+## 26. 제스처/터치 정책
+
+- [ ] 드래그 임계값 8px, 스와이프 속도 0.3px/ms 이상
+- [ ] 포인터 coarse(터치)에서 hover 최소화, 히트 영역 44px 보장
+- [ ] 롱프레스 350ms(모바일), 웹진동 API 미사용
+- AC
+  - [ ] 모바일에서 오작동 없는 제스처/탭 목표 정확도 ≥ 95%
+
+---
+
+## 27. 모션 QA/성능
+
+- [ ] 60fps 유지(DevTools Performance), 큰 리스트 가상화
+- [ ] 레이아웃 thrashing 방지(읽기/쓰기 분리), will-change 최소화
+- [ ] reduce-motion/키보드 전용 탐색 시 UX 동등성 확인
+- [ ] 이미지/Lottie 용량 예산: 히어로 < 200KB 정적, 애니메이션 < 500KB 권장
+- AC
+  - [ ] 랜딩/프로젝트/슬라이더/마퀴/카운터에서 프레임 드랍 없음(체감 기준 + 샘플 측정)
 
 ## 부록 A. 의존성 맵(요약)
 
