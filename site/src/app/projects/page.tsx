@@ -1,25 +1,27 @@
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 type SearchParams = { cohort?: string };
 
-export default async function ProjectsPage({ searchParams }: { searchParams?: SearchParams }) {
-  const cohort = searchParams?.cohort || undefined;
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const sp = await searchParams;
+  const cohort = sp?.cohort || undefined;
 
   let cohorts: string[] = [];
-  let projects: Array<{ id: number; slug: string; name: string; cohort: string | null; summary: string | null }>= [];
+  let projects: Array<{ id: number; slug: string; name: string; cohort: string | null; summary: string | null; cover_url: string | null }>= [];
 
   if (supabase) {
     const { data: raw } = await supabase.from("projects").select("cohort").order("cohort", { ascending: true });
     const rawList = (raw as Array<{ cohort: string | null }> | null) || [];
     cohorts = Array.from(new Set(rawList.map((r) => r.cohort).filter((c): c is string => Boolean(c))));
 
-    let query = supabase.from("projects").select("id,slug,name,cohort,summary").order("updated_at", { ascending: false });
+    let query = supabase.from("projects").select("id,slug,name,cohort,summary,cover_url").order("updated_at", { ascending: false });
     if (cohort) query = query.eq("cohort", cohort);
     const { data: list } = await query;
-    projects = (list as Array<{ id: number; slug: string; name: string; cohort: string | null; summary: string | null }> | null) || [];
+    projects = (list as Array<{ id: number; slug: string; name: string; cohort: string | null; summary: string | null; cover_url: string | null }> | null) || [];
   }
 
   return (
@@ -39,7 +41,15 @@ export default async function ProjectsPage({ searchParams }: { searchParams?: Se
         {projects.map((p) => (
           <Link key={p.id} href={`/projects/${p.slug}`}>
             <Card>
-              <div className="aspect-[16/9] rounded-[var(--radius-card)] bg-[color:var(--color-gray-200)]" />
+              <div className="aspect-[16/9] rounded-[var(--radius-card)] bg-[color:var(--color-gray-200)] relative overflow-hidden">
+                <Image
+                  src={p.cover_url || `https://picsum.photos/seed/${p.id}/800/450`}
+                  alt={`${p.name} 대표 이미지`}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
               <div className="mt-3 flex items-center gap-2">
                 <h3 className="font-semibold">{p.name}</h3>
                 {p.cohort && <Badge>{p.cohort}</Badge>}

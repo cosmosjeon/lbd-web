@@ -120,3 +120,10 @@ body {
   border-radius: 8px;
   z-index: 1000;
 }
+
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.animate-shimmer { animation: shimmer 1.2s linear infinite; }

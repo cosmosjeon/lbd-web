@@ -1,7 +1,6 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
-
 # 사용자 개입 규칙 (USER INTERVENTION RULES)
 
 ## 다음 상황에서는 **작업을 중단하고 사용자에게 물어보세요**:

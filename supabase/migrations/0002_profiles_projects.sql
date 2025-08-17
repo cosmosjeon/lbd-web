@@ -95,6 +95,7 @@ alter table public.profiles enable row level security;
 
 -- policies (idempotent via conditional checks)
 do $$
+declare pol record;
 begin
   -- profiles: self read/update only
   if not exists (
@@ -146,9 +147,12 @@ declare r record;
 begin
   for r in select table_schema, table_name from information_schema.columns where column_name='updated_at' and table_schema='public'
   loop
-    execute format('create trigger %I before update on %I.%I for each row execute function public.set_updated_at();', r.table_name||'_set_updated_at', r.table_schema, r.table_name);
-    -- if exists will error; ignore errors
-    exception when duplicate_object then continue;
+    begin
+      execute format('create trigger %I before update on %I.%I for each row execute function public.set_updated_at();', r.table_name||'_set_updated_at', r.table_schema, r.table_name);
+    exception when duplicate_object then
+      -- ignore if trigger already exists
+      null;
+    end;
   end loop;
 end $$;
 
